@@ -1,0 +1,157 @@
+<?php
+include 'connessione.php';
+session_start();
+
+if(isset($_POST['Login'])){
+if(isset($_POST['EmailUtente']) && isset($_POST['PasswordUtente'])){
+$emailutente = $_POST['EmailUtente'];
+$passwordutente = $_POST['PasswordUtente'];
+
+
+$controlloLogin = mysqli_prepare($connessione, "SELECT * FROM Utenti WHERE EmailUtente = ?
+				AND PasswordUtente = ? ");
+	mysqli_stmt_bind_param($controlloLogin, "ss",$emailutente, $passwordutente);
+	mysqli_stmt_execute($controlloLogin);
+	
+
+if(mysqli_num_rows($risultatoEmail)>0){
+
+
+$row = mysqli_fetch_array($risultatoEmail,MYSQLI_ASSOC);
+
+
+
+//login
+	if(isset($row['NomeUtente'])){
+
+		
+		$value = $row["NomeUtente"];
+  		preg_match("/(\d{4})-(\d{2})-(\d{2})/", $value, $results); //FIXED
+  
+  if(sizeof($results) > 0){
+    $_SESSION["NomeUtente"] = $value; //OK
+  }
+		
+		
+		
+	}
+	if(isset($row['IdUtente'])){
+		$value2 = $row['IdUtente'];
+		preg_match("/(\d{4})-(\d{2})-(\d{2})/", $value2, $results2); //FIXED
+  
+  if(sizeof($results2) > 0){
+    $_SESSION["id"] = $value2; //OK
+  }
+	}
+	
+	
+//se c'è il cognome vai in admin
+if(  $row['CognomeUtente']!=0 || $row['CognomeUtente']!= '0'   ){
+header('location: admin.php');
+}
+
+//se non c'è il cognome vai in cliente
+else {
+
+header('location: profilo.php');
+	}
+    }
+    
+    
+//se sono errati visualizza il messaggio di errore    
+    else{
+	    $r1 = '<script> alert("Email o password errati");</script>';
+echo $r1;
+
+    
+    }
+    
+
+}
+}
+
+//LOGIN APPLICAZIONI ESTERNE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+if(isset($_POST['LoginApp']) && isset($_POST['Codice'])){
+
+$cod = $_POST['Codice'];
+
+$controlloLoginApp =mysqli_prepare($connessione, "SELECT * FROM ApplicazioneEsterna WHERE Codice = ?  ");
+	mysqli_stmt_bind_param($controlloLoginApp, "i", $cod);
+mysqli_stmt_execute($controlloLoginApp);
+
+
+if(mysqli_num_rows($risultatoApp)>0){
+
+$row = mysqli_fetch_array($risultatoApp,MYSQLI_ASSOC);
+	
+	$val1 = $row['Codice'];
+	preg_match("/(\d{4})-(\d{2})-(\d{2})/", $val1, $results1); //FIXED
+  
+  if(sizeof($results1) > 0){
+    $_SESSION["idapp"] = $val1; //OK
+  }
+	
+	$val2 = $row['Nome'];
+	preg_match("/(\d{4})-(\d{2})-(\d{2})/", $val2, $results2); //FIXED
+  
+  if(sizeof($results2) > 0){
+    $_SESSION["nomeapp"] = $val2; //OK
+  }
+	
+	
+
+header('location: App_Loggata.php');
+}
+
+else{
+	$r1 = '<script> alert("Applicazione esterna non esistente");</script>';
+
+echo $r1;
+}
+}
+
+?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+ <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> 
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOGIN</title>
+</head>
+
+<body style="background-color:#d6ffa8 !important;">
+<div class="container" align="center">
+<h2> Login </h2>
+
+<form action="login.php" method="post">
+<input type="text" class="form-control" placeholder="Inserisci email" name="EmailUtente"><br>
+<input type="password" class="form-control" placeholder="Inserisci password" name="PasswordUtente"><br>
+<input type="submit" class="btn btn-default" value="Login" name="Login">
+</form>
+
+<br><br><br>
+<h2> Login epplicazione esterna</h2>
+<form action="login.php" method="post">
+<input type="password" class="form-control" placeholder="Inserisci codice" name="Codice"><br>
+<input type="submit" class="btn btn-default" value="Login" name="LoginApp">
+</form>
+
+
+</div>
+</body>
+
+<html>
